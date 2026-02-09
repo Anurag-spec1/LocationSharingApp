@@ -11,12 +11,13 @@ import androidx.core.view.WindowInsetsCompat
 import com.anurag.locationsharingapp.databinding.ActivityMainBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private lateinit var locationClient: FusedLocationProviderClient
-    private val LOCATION_PERMISSION_REQUEST_CODE = 100
+    private val LOCATION_PERMISSION_REQUEST_CODE = 1001
 
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -45,15 +46,33 @@ class MainActivity : AppCompatActivity() {
             )
             return
         }
-        locationClient.lastLocation.addOnSuccessListener { location ->
+        locationClient.getCurrentLocation(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            null
+        ).addOnSuccessListener { location ->
             if (location != null) {
                 val lat = location.latitude
                 val lon = location.longitude
-
                 binding.locn.text = "Latitude: $lat\nLongitude: $lon"
             } else {
                 binding.locn.text = "Unable to get location"
             }
+        }
+    }
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+       if (requestCode == LOCATION_PERMISSION_REQUEST_CODE &&
+            grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED
+        ) {
+            getCurrentLocn()
+        } else {
+            binding.locn.text = "Location permission denied"
         }
     }
 }
